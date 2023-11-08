@@ -155,6 +155,19 @@ public class Dictionary {
 					singleton.loadPrepDict();
 					singleton.loadStopWordDict();
 
+					//demo 在这里开启一个线程，每隔一段时间去mysql里面加载一下词库里的内容
+					new Thread(() -> {
+						while (true) {
+							try {
+								DictLoader.getInstance().loadMysqlExtensionWords();;
+								DictLoader.getInstance().loadMysqlStopWords();
+								TimeUnit.SECONDS.sleep(60);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
+					}).start();
+
 					if(cfg.isEnableRemoteDict()){
 						// 建立监控线程
 						for (String location : singleton.getRemoteExtDictionarys()) {
@@ -312,6 +325,19 @@ public class Dictionary {
 				if (word != null) {
 					// 批量加载词条到主内存词典中
 					singleton._MainDict.fillSegment(word.trim().toCharArray());
+				}
+			}
+		}
+	}
+
+	/**
+	 * 添加停用词
+	 */
+	public void addStopWords(Collection<String> words) {
+		if (words != null) {
+			for (String word : words) {
+				if (word != null) {
+					singleton._StopWords.fillSegment(word.trim().toCharArray());
 				}
 			}
 		}
